@@ -6,7 +6,8 @@ import javafx.scene.shape.Box;
 public class Plane implements GameObject {
 	
 	private Box body;
-	private double x, z, xs, zs, s, r, rs;
+	private double x, z, xs, zs, s, r, rs, boost, maxS;
+	private boolean useBoost;
 	
 	public Plane() {
 		x = 0;
@@ -16,6 +17,9 @@ public class Plane implements GameObject {
 		s = 0.1;
 		r = 0;
 		rs = 0;
+		boost = 100;
+		maxS = 2;
+		useBoost = false;
 	}
 	
 	public double getX() {
@@ -27,7 +31,7 @@ public class Plane implements GameObject {
 	}
 	
 	public void accelerate() {
-		s += (2 - s) / 500;
+		s += (maxS - s) / 500;
 	}
 	
 	public void decelerate() {
@@ -35,11 +39,11 @@ public class Plane implements GameObject {
 	}
 	
 	public void rotateLeft() {
-		rs += (-0.03 + 0.007*s - rs)/1000;
+		rs += (-0.025 + 0.004*s - rs)/1000;
 	}
 	
 	public void rotateRight() {
-		rs += (0.03 - 0.007*s - rs)/1000;
+		rs += (0.025 - 0.004*s - rs)/1000;
 	}
 	
 	public void rotateNone() {
@@ -53,9 +57,36 @@ public class Plane implements GameObject {
 	public double getTilt() {
 		return rs*300;
 	}
+	
+	public double getSpeed() {
+		return s;
+	}
+	
+	public void useBoost() {
+		useBoost = true;
+		if (boost > 0) {
+			boost -= 0.03;
+		}
+	}
+	
+	public boolean boosting() {
+		return useBoost && boost > 0;
+	}
+	
+	public double boost() {
+		return boost;
+	}
+	
+	public void reFillBoost() {
+		useBoost = false;
+		if (boost < 100) {
+			boost += 0.01;
+		}
+	}
 
 	@Override
 	public void update() {
+		maxS = (useBoost && boost > 0) ? 2.5 : 2;
 		xs = s*Math.sin(Math.toRadians(r));
 		zs = s*Math.cos(Math.toRadians(r));
 		x += xs;
