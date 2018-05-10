@@ -1,9 +1,8 @@
 /*
- * FIX AUDIO FILES CRASHING PROGRAM
- * IMPROVE PLANE GRAPHICS
- * WRITE TRACKER FOR MISSILE CLASS
  * FIX MAP
- * SPACE OUT ENEMIES ...
+ * CHECK PLANE GRAPHICS, TERRAIN GROUND
+ * FIX EXPLOSION SOUND
+ * WRITE TRACKER FOR MISSILE CLASS
  * CREATE ENDING */
 
 package application;
@@ -154,9 +153,7 @@ public class Main extends Application {
 	}
 	
 	public static void draw() {
-		if (!whirClip.isRunning()) {
-			whirClip.start();
-		}
+		whirClip.loop(Clip.LOOP_CONTINUOUSLY);
 		boolean boosting = false, firing = false;
 		String acc = "", direc = "";
 		String min = String.valueOf((int) Math.floor(time/60)),
@@ -170,10 +167,9 @@ public class Main extends Application {
 		plane.update();
 		if (keyHeld[31]) {
 			firing = true;
-			if (!shootClip.isRunning()) {
-				shootClip.start();
-			}
+			shootClip.loop(Clip.LOOP_CONTINUOUSLY);
 		} else {
+			shootClip.setFramePosition(0);
 			shootClip.stop();
 		}
 		if (keyHeld[37]) {
@@ -227,12 +223,12 @@ public class Main extends Application {
 				currentEnemy.setData(plane.getAngle(), firing);
 				currentEnemy.update();
 				if (!currentEnemy.getDead() && dist(currentEnemy.getX(), plane.getX(),
-						currentEnemy.getZ(), plane.getZ()) > 50000) {
-					currentEnemy.spawn(plane.getX(), plane.getZ(), 20000);
+						currentEnemy.getZ(), plane.getZ()) > 80000) {
+					currentEnemy.spawn(plane.getX(), plane.getZ(), 30000);
 				}
 				score += 100*currentEnemy.dead();
 				if (currentEnemy.dead() > 0) {
-					explodeClip.start();
+					explodeClip.loop(1);
 				}
 			}
 			//

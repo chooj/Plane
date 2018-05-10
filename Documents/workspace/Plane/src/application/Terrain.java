@@ -2,13 +2,14 @@ package application;
 
 import javafx.scene.Group;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.transform.Rotate;
 
 public class Terrain implements GameObject {
 	
 	private double x, z;
-	private Rectangle ground;
+	private Circle ground;
 	private Tree[] trees;
 	private Cloud[] clouds;
 	private String style;
@@ -17,7 +18,7 @@ public class Terrain implements GameObject {
 		this.style = style;
 		x = 0;
 		z = 0;
-		ground = new Rectangle(-4700, -4700, 10000, 10000);
+		ground = new Circle(300, 300, 7070);
 		ground.setFill(Color.GREEN);
 		ground.setRotationAxis(Rotate.X_AXIS);
 		ground.setRotate(90);

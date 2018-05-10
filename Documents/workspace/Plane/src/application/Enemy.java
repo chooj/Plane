@@ -8,11 +8,11 @@ import javafx.scene.transform.Rotate;
 
 public class Enemy implements GameObject {
 	
-	private Box body, wings, propel, hBar;
-	private Box[] bBorders;
-	private double x = 300, y = 300, z = 10000, ys = -1, as = 1, r = 0, maxS = 10.0, minS = 2.5,
+	private Box body, wingL, wingR, propel, pit, tail, hBar;
+	private Box[] bBorders, pieces = new Box[6];
+	private double x = 300, y = 300, z = 10000, ys = -1, as = 1, r = 0, maxS = 5.0, minS = 2.5,
 			s = maxS, rg = 0, pr, lastRm = -Double.MAX_VALUE, lastHm = -Double.MAX_VALUE;
-	private double[] direc = new double[3];
+	private double[] direc = new double[6];
 	private int health = 100;
 	private boolean pFiring = false, sentDead = false;
 	private Rotate pRot;
@@ -26,13 +26,25 @@ public class Enemy implements GameObject {
 		body.setMaterial(em);
 		move(body, x, y, z);
 		body.setRotationAxis(Rotate.Y_AXIS);
+		pieces[0] = body;
 		//
+		wingL = new Box(160, 50, 400);
 		PhongMaterial wm = new PhongMaterial();
 		wm.setDiffuseColor(Color.BROWN);
-		wings = new Box(400, 50, 200);
-		wings.setMaterial(wm);
-		move(wings, x, y, z + 200);
-		wings.setRotationAxis(Rotate.Y_AXIS);
+		wingL.setMaterial(wm);
+		move(wingL, x - 60, y, z);
+		Rotate wlRot = new Rotate(20, Rotate.Y_AXIS);
+		wingL.getTransforms().add(wlRot);
+		wingL.setRotationAxis(Rotate.Y_AXIS);
+		pieces[1] = wingL;
+		//
+		wingR = new Box(160, 50, 400);
+		wingR.setMaterial(wm);
+		move(wingR, x + 60, y, z);
+		wingR.setRotationAxis(Rotate.Y_AXIS);
+		Rotate wrRot = new Rotate(-20, Rotate.Y_AXIS);
+		wingR.getTransforms().add(wrRot);
+		pieces[2] = wingR;
 		//
 		propel = new Box(400, 40, 10);
 		propel.setMaterial(em);
@@ -40,6 +52,25 @@ public class Enemy implements GameObject {
 		propel.setRotationAxis(Rotate.Y_AXIS);
 		pRot = new Rotate(0, Rotate.Z_AXIS);
 		propel.getTransforms().add(pRot);
+		pieces[3] = propel;
+		//
+		pit = new Box(70, 140, 140);
+		PhongMaterial pm = new PhongMaterial();
+		pm.setDiffuseColor(Color.grayRgb(50));
+		pit.setMaterial(pm);
+		move(pit, x, y + 50, z + 170);
+		pit.setRotationAxis(Rotate.Y_AXIS);
+		Rotate cRot = new Rotate(45, Rotate.X_AXIS);
+		pit.getTransforms().add(cRot);
+		pieces[4] = pit;
+		//
+		tail = new Box(70, 170, 170);
+		tail.setMaterial(wm);
+		move(tail, x, y - 100, z - 200);
+		tail.setRotationAxis(Rotate.Y_AXIS);
+		Rotate tRot = new Rotate(30, Rotate.X_AXIS);
+		tail.getTransforms().add(tRot);
+		pieces[5] = tail;
 		//
 		hBar = new Box(100, 30, 5);
 		PhongMaterial hm = new PhongMaterial();
@@ -59,15 +90,15 @@ public class Enemy implements GameObject {
 		}
 		//
 		for (int i = 0; i < direc.length; i++) {
-			direc[i] = Math.random()*Math.PI*2;
+			direc[i] = i*Math.PI*2/direc.length + Math.random()*1;
 		}
 	}
 	
 	public void spawn(double x, double z, double dist) {
-		double rot = Math.random()*Math.PI*2, posneg = Math.random()-0.5;
+		double rot = Math.random()*Math.PI*2;
 		this.x = x + dist*Math.sin(rot);
 		this.z = z + dist*Math.cos(rot);
-		r = Math.toDegrees(rot) + 20*((posneg > 0) ? 30 : -30);
+		r = Math.toDegrees(rot) + 100*((Math.random() > 0.5) ? 1 : -1);
 		rg = r;
 		health = 100;
 		y = -100;
@@ -96,7 +127,7 @@ public class Enemy implements GameObject {
 	
 	private void regroup() {
 		double rand = Math.random() - 0.5;
-		rg = r + ((rand < 0) ? -1 : 1) * (60 + Math.random()*20);
+		rg = r + ((rand < 0) ? -1 : 1) * (45 + Math.random()*10);
 		s = maxS;
 		lastRm = System.currentTimeMillis();
 	}
@@ -123,7 +154,11 @@ public class Enemy implements GameObject {
 	public void update() {
 		if (!getDead()) {
 			double realRot = body.getRotate() + (r-body.getRotate())/50;
-			s += (minS-s)/10;
+			if (System.currentTimeMillis()-lastRm < 1000) {
+				s = maxS;
+			} else {
+				s += (minS-s)/10;
+			}
 			x += s*Math.sin(Math.toRadians(r));
 			z += s*Math.cos(Math.toRadians(r));
 			r += (rg-r)/400;
@@ -133,13 +168,16 @@ public class Enemy implements GameObject {
 			}
 			//
 			move(body, x, y, z);
-			body.setRotate(realRot);
 			move(propel, x + 320*Math.sin(Math.toRadians(r)), y,
 					z + 320*Math.cos(Math.toRadians(r)));
 			pRot.setAngle(pRot.getAngle() + 3);
-			propel.setRotate(realRot);
-			move(wings, x + 200*Math.sin(Math.toRadians(r)), y, z + 200*Math.cos(Math.toRadians(r)));
-			wings.setRotate(realRot);
+			move(wingL, x - 60*Math.cos(Math.toRadians(r)), y, z + 60*Math.sin(Math.toRadians(r)));
+			move(wingR, x + 60*Math.cos(Math.toRadians(r)), y, z - 60*Math.sin(Math.toRadians(r)));
+			move(pit, x + 170*Math.sin(Math.toRadians(r)), y - 50, z + 170*Math.cos(Math.toRadians(r)));
+			move(tail, x - 250*Math.sin(Math.toRadians(r)), y - 70, z - 250*Math.cos(Math.toRadians(r)));
+			for (Box b : pieces) {
+				b.setRotate(realRot);
+			}
 			//
 			move(hBar, x, y - 100, z);
 			hBar.setRotate(pr);
@@ -152,28 +190,21 @@ public class Enemy implements GameObject {
 			y += (300 - y) / 50;
 			ys = -1;
 		} else {
-			body.setRotationAxis(Rotate.Z_AXIS);
-			wings.setRotationAxis(Rotate.Z_AXIS);
-			propel.setRotationAxis(Rotate.Z_AXIS);
+			for (int i = 0; i < pieces.length; i++) {
+				pieces[i].setRotationAxis(Rotate.Z_AXIS);
+				if (body.getScaleX() > 0) {
+					shrink(pieces[i], 0.0012);
+				}
+			}
 			double bgty = body.getTranslateY();
 			if (bgty < Double.MAX_VALUE) {
 				ys += 0.005;
 				as = 1;
-				move(body, body.getTranslateX() + Math.cos(direc[0])*as, bgty + ys,
-						body.getTranslateZ() + Math.sin(direc[0])*as);
-				move(wings, wings.getTranslateX() + Math.cos(direc[1])*as, body.getTranslateY(),
-						wings.getTranslateZ() + Math.sin(direc[1])*as);
-				move(propel, propel.getTranslateX() + Math.cos(direc[2])*as, body.getTranslateY(),
-						propel.getTranslateZ() + Math.sin(direc[2])*as);
-				body.setRotate(body.getRotate() + 0.1);
-				wings.setRotate(body.getRotate() + 0.1);
-				propel.setRotate(body.getRotate() + 0.1);
-				
-			}
-			if (body.getScaleX() > 0) {
-				shrink(body, 0.0012);
-				shrink(wings, 0.0012);
-				shrink(propel, 0.0012);
+				for (int i = 0; i < pieces.length; i++) {
+					move(pieces[i], pieces[i].getTranslateX() + Math.cos(direc[0])*as, bgty + ys,
+							pieces[i].getTranslateZ() + Math.sin(direc[0])*as);
+					pieces[i].setRotate(body.getRotate() + 0.1);
+				}
 			}
 			move(hBar, 0, Double.MAX_VALUE, 0);
 			for (Box b : bBorders) {
@@ -201,7 +232,7 @@ public class Enemy implements GameObject {
 	@Override
 	public Group components() {
 		Group g = new Group();
-		g.getChildren().addAll(body, propel, wings, hBar);
+		g.getChildren().addAll(body, propel, wingL, wingR, pit, tail, hBar);
 		for (Box b : bBorders) {
 			g.getChildren().add(b);
 		}

@@ -4,7 +4,7 @@ import javafx.scene.Group;
 
 public class Bullet implements GameObject {
 	
-	private double x, z, xs, zs, px, pz, pr, speed = 100;
+	private double x, z, xs, zs, px, pz, pr, speed = 500;
 	private double[] ex, ez;
 	private boolean fired;
 	

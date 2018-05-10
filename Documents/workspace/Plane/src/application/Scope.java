@@ -41,9 +41,12 @@ public class Scope implements GameObject {
 
 	@Override
 	public void update() {
-		double rand = (boosting) ? (Math.random()-0.5)*5 : 0;
-		big.setCenterX(300 - 10*pt + rand);
+		double rand1 = (boosting) ? (Math.random()-0.5)*3 : 0,
+				rand2 = (boosting) ? (Math.random()-0.5)*3 : 0;
+		big.setCenterX(300 - 10*pt + rand1);
+		big.setCenterY(300 + rand2);
 		lil.setCenterX(big.getCenterX());
+		lil.setCenterY(big.getCenterY());
 		if (fire.getWidth() > 0) {
 			fire.setRotate((big.getCenterX()-300)/10);
 			fire.setX(fire.getX() + (big.getCenterX()-fire.getX())/80);
