@@ -1,5 +1,6 @@
 /*
- * FIX MAP
+ * TILT ENEMIES (maybe turn slower)
+ * FIX MAP (data set in while loop)
  * CHECK PLANE GRAPHICS, TERRAIN GROUND
  * FIX EXPLOSION SOUND
  * WRITE TRACKER FOR MISSILE CLASS
@@ -53,6 +54,9 @@ public class Main extends Application {
 	public static Plane plane;
 	public static Terrain terrain;
 	public static LinkedList<Enemy> enemies;
+	public static int eNum = 5;
+	public static double[] ex = new double[eNum], ez = new double[eNum], ea = new double[eNum];
+	public static boolean[] ed = new boolean[eNum];
 	public static Bullet[] bullets;
 	public static int bInd = 0, bCount = 0, maxB = 30, mInd = 0;
 	public static double lastBm;
@@ -65,7 +69,7 @@ public class Main extends Application {
 	// off / basic / on
 	public static String terrainStyle = "off";
 	public static double time = 120;
-	public static int score, eNum = 5;
+	public static int score = 0;
 	public static Missile[] missiles;
 	public static String whirFile = "whir.wav", shootFile = "shoot.wav",
 			explodeFile = "explode.wav";
@@ -211,8 +215,6 @@ public class Main extends Application {
 			terrain.update();
 		}
 		//
-		double[] ex = new double[eNum], ez = new double[eNum], ea = new double[eNum];
-		boolean[] ed = new boolean[eNum];
 		ListNode<Enemy> current = enemies.getFront();
 		int i = 0;
 		while (!(current == null)) {

@@ -15,7 +15,8 @@ public class Enemy implements GameObject {
 	private double[] direc = new double[6];
 	private int health = 100;
 	private boolean pFiring = false, sentDead = false;
-	private Rotate pRot;
+	private Rotate pRot, tilt;
+	private double lastR = 0, rDiff = 0;
 	
 	public Enemy(double x, double z, double dist) {
 		spawn(x, z, dist);
@@ -92,6 +93,11 @@ public class Enemy implements GameObject {
 		for (int i = 0; i < direc.length; i++) {
 			direc[i] = i*Math.PI*2/direc.length + Math.random()*1;
 		}
+		//
+		tilt = new Rotate(0, Rotate.Z_AXIS);
+		for (Box b : pieces) {
+			b.getTransforms().add(tilt);
+		}
 	}
 	
 	public void spawn(double x, double z, double dist) {
@@ -133,7 +139,7 @@ public class Enemy implements GameObject {
 	}
 	
 	public void changeHealth() {
-		health -= 5;
+		health -= 25;
 		lastHm = System.currentTimeMillis();
 	}
 	
@@ -162,10 +168,13 @@ public class Enemy implements GameObject {
 			x += s*Math.sin(Math.toRadians(r));
 			z += s*Math.cos(Math.toRadians(r));
 			r += (rg-r)/400;
+			rDiff = r - lastR;
 			//
 			if (underFire() && System.currentTimeMillis() - lastRm > 8000) {
 				regroup();
 			}
+			//
+			tilt.setAngle(rDiff);
 			//
 			move(body, x, y, z);
 			move(propel, x + 320*Math.sin(Math.toRadians(r)), y,
@@ -189,6 +198,7 @@ public class Enemy implements GameObject {
 			}
 			y += (300 - y) / 50;
 			ys = -1;
+			lastR = r;
 		} else {
 			for (int i = 0; i < pieces.length; i++) {
 				pieces[i].setRotationAxis(Rotate.Z_AXIS);
