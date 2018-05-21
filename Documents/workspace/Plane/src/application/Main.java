@@ -1,9 +1,9 @@
 /*
- * TILT ENEMIES (maybe turn slower)
- * FIX MAP (data set in while loop)
- * CHECK PLANE GRAPHICS, TERRAIN GROUND
+ * ENEMIES ON OFFENSIVE (fix behindPlane(), angleWPlane())
+ * TILT USER + ENEMIES (maybe turn slower)
+ * FIX MAP (last two bogies)
  * FIX EXPLOSION SOUND
- * WRITE TRACKER FOR MISSILE CLASS
+ * MISSILE TRACKER?
  * CREATE ENDING */
 
 package application;
@@ -56,7 +56,7 @@ public class Main extends Application {
 	public static LinkedList<Enemy> enemies;
 	public static int eNum = 5;
 	public static double[] ex = new double[eNum], ez = new double[eNum], ea = new double[eNum];
-	public static boolean[] ed = new boolean[eNum];
+	public static boolean[] ed = new boolean[eNum], et = new boolean[eNum];
 	public static Bullet[] bullets;
 	public static int bInd = 0, bCount = 0, maxB = 30, mInd = 0;
 	public static double lastBm;
@@ -68,7 +68,7 @@ public class Main extends Application {
 	public static Scope scope;
 	// off / basic / on
 	public static String terrainStyle = "off";
-	public static double time = 120;
+	public static double time = 0;
 	public static int score = 0;
 	public static Missile[] missiles;
 	public static String whirFile = "whir.wav", shootFile = "shoot.wav",
@@ -108,15 +108,18 @@ public class Main extends Application {
 	
 	public static void initialize() {
 		plane = new Plane();
+		pane.getChildren().add(plane.components());
 		if (!terrainStyle.equals("off")) {
 			terrain = new Terrain(terrainStyle);
 			pane.getChildren().add(terrain.components());
 		}
 		enemies = new LinkedList<Enemy>(null);
 		for (int i = 0; i < eNum; i++) {
-			Enemy newEnemy = new Enemy(300, 0, 20000);
+			Enemy newEnemy = new Enemy(300, 0, 20000, i);
 			pane.getChildren().add(newEnemy.components());
 			enemies.add(newEnemy);
+			ed[i] = false;
+			et[i] = false;
 		}
 		bullets = new Bullet[100];
 		for (int i = 0; i < bullets.length; i++) {
@@ -163,11 +166,7 @@ public class Main extends Application {
 		String min = String.valueOf((int) Math.floor(time/60)),
 				sec = (time % 60 < 10) ? "0"+(int) (time%60) : String.valueOf((int) time%60);
 		String t = min + ":" + sec;
-		if (time > 0) {
-			time -= 0.001;
-		} else {
-			time = 0;
-		}
+		time += 0.001;
 		plane.update();
 		if (keyHeld[31]) {
 			firing = true;
@@ -222,11 +221,11 @@ public class Main extends Application {
 			if (currentEnemy.offScreen()) {
 				enemies.delete(current);
 			} else {
-				currentEnemy.setData(plane.getAngle(), firing);
+				currentEnemy.setData(plane.getX(), plane.getZ(), plane.getAngle(), firing);
 				currentEnemy.update();
 				if (!currentEnemy.getDead() && dist(currentEnemy.getX(), plane.getX(),
 						currentEnemy.getZ(), plane.getZ()) > 80000) {
-					currentEnemy.spawn(plane.getX(), plane.getZ(), 30000);
+					currentEnemy.spawn(30000);
 				}
 				score += 100*currentEnemy.dead();
 				if (currentEnemy.dead() > 0) {
@@ -234,15 +233,21 @@ public class Main extends Application {
 				}
 			}
 			//
-			ex[i] = currentEnemy.getX();
-			ez[i] = currentEnemy.getZ();
-			ea[i] = currentEnemy.getAngle();
-			ed[i] = currentEnemy.getDead();
+			while (i < ed.length && ed[i] && !currentEnemy.getDead()) {
+				i++;
+			}
+			if (i < ex.length) {
+				ex[i] = currentEnemy.getX();
+				ez[i] = currentEnemy.getZ();
+				ea[i] = currentEnemy.getAngle();
+				ed[i] = currentEnemy.getDead();
+				et[i] = currentEnemy.tracking();
+			}
 			//
 			current = current.getNext();
 			i++;
 		}
-		map.setData(plane.getX(),plane.getZ(), plane.getAngle(), ex, ez, ea, ed);
+		map.setData(plane.getX(),plane.getZ(), plane.getAngle(), ex, ez, ea, ed, et);
 		map.update();
 		//
 		boolean shoot = false;
@@ -257,17 +262,17 @@ public class Main extends Application {
 		}
 		firing = false;
 		for (Bullet b : bullets) {
-			b.setData(plane.getX(), plane.getZ(), plane.getAngle(), ex, ez);
+			b.setData(plane.getX(), plane.getZ(), plane.getAngle(), ex, ez, ed);
 			b.update();
 			int gh = b.getHit();
-			if (b.getHit() > -1) {
-				int counter = 0;
+			if (gh > -1) {
 				ListNode<Enemy> healthPointer = enemies.getFront();
-				while (counter < gh) {
-					healthPointer = healthPointer.getNext();
-					counter++;
+				if (healthPointer != null) {
+					while (healthPointer.getData().getId() < gh) {
+						healthPointer = healthPointer.getNext();
+					}
+					healthPointer.getData().changeHealth();
 				}
-				healthPointer.getData().changeHealth();
 			}
 		}
 		//

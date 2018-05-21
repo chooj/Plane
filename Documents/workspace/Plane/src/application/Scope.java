@@ -61,7 +61,7 @@ public class Scope implements GameObject {
 	@Override
 	public Group components() {
 		Group g = new Group();
-		g.getChildren().addAll(big, lil, fire);
+		g.getChildren().addAll(big, lil/*, fire*/);
 		return g;
 	}
 	
